@@ -1,0 +1,29 @@
+groups:
+  - name: system_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 80
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage has been above 80% for 2 minutes."
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)
+              / node_memory_MemTotal_bytes * 100 > 80
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage has been above 80% for 80% for 3 minutes."
+
+      - alert: ContainerDown
+        expr: max without (name) (kube_pod_container_status_ready{condition="true"}) == 0
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container down"
+          description: "One or more containers are not ready."
